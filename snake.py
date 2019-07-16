@@ -2,163 +2,12 @@ import pygame
 import pygbutton
 import time
 from random import randint
+from personagens import Cobra, Fruta
+from efeitos import Cor, Sound
 
 
-class Cor():
-	def __init__(self):
-		self.white = (255, 255, 255)
-		self.black = (0, 0, 0)
-		self.red = (255, 0, 0)
-		self.green = (0, 255, 0)
-		self.blue = (0, 0, 255)
-		self.rosina = (255,153,153)
-		self.laranja = (105, 70, 0)
-
-class Fruta():
-	def __init__(self,altura, largura, tamanho_x = 10, tamanho_y = 10, points_per_fruit = 1, cor = (255, 0, 0), aumenta_cobra = False):
-		self.pos_x = randint(0, (largura - tamanho_x)/10)*10
-		self.pos_y = randint(0, (altura - tamanho_y)/10)*10
-		self.points_per_fruit = points_per_fruit
-		self.cor = cor
-		self.tamanho_x = tamanho_x
-		self.tamanho_y = tamanho_y
-		self.altura = altura
-		self.largura = largura
-		self.aumenta_cobra = aumenta_cobra
-		self.chance = randint(0, 101)
-	def desenhar_fruta(self, cobra, tela):
-		if self.aumenta_cobra:
-			while (self.pos_x == cobra.cobra[len(cobra.cobra) - 1][0]) and (self.pos_y == cobra.cobra[len(cobra.cobra) - 1][1]):
-				self.pos_x = randint(0, (self.largura - self.tamanho_x)/10)*10
-				self.pos_y = randint(0, (self.altura - self.tamanho_y)/10)*10
-			pygame.draw.rect(tela, self.cor, [self.pos_x, self.pos_y, self.tamanho_x, self.tamanho_y])
-		else:
-			if self.chance >= 70:
-				while (self.pos_x == cobra.cobra[len(cobra.cobra) - 1][0]) and (self.pos_y == cobra.cobra[len(cobra.cobra) - 1][1]):
-					self.pos_x = randint(0, (self.largura - self.tamanho_x)/10)*10
-					self.pos_y = randint(0, (self.altura - self.tamanho_y)/10)*10
-				pygame.draw.rect(tela, self.cor, [self.pos_x, self.pos_y, self.tamanho_x, self.tamanho_y])
-
-	def colisao_fruta(self, cobra, frutas):
-		print(cobra.pos_x, cobra.pos_y, self.pos_x, self. pos_y)
-		if cobra.pos_x == self.pos_x and cobra.pos_y == self.pos_y:
-			cobra.pontos += self.points_per_fruit
-			if self.aumenta_cobra is True:
-				cobra.tamanho += 1
-				for fruta in frutas:
-					fruta.chance = randint(0, 101)
-		print(cobra.pontos)
-
-class Cobra():
-	def __init__(self, largura, altura, tamanho_x = 10, tamanho_y = 10, cor = (0,255,255)):
-		#tamanho da cobra
-		self.tamanho_x = tamanho_x
-		self.tamanho_y = tamanho_y
-		#inicializando a lista
-		self.cobra = []
-		#inicializando as posicoes
-		self.pos_x = randint(0, (largura - tamanho_x)/10)*10
-		self.pos_y = randint(0, (altura - 2*tamanho_y)/10)*10
-		#inicializando a cor
-		self.cor = cor
-		#colocando na lista
-		parte = []
-		parte.append(self.pos_x)
-		parte.append(self.pos_y)
-		self.cobra.append(parte)
-		#inicializando os pontos
-		self.pontos = 0
-		#inicializando a quantidade de partes da cobra
-		self.tamanho = 1
-		#inicializando a velocidade inicial
-		self.velocidade_x = 0.0
-		self.velocidade_y = 0.0
-	#calcula a velocidade da cobra
-	def velocidade_cobra(self, event):
-		if event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_LEFT:
-				if self.velocidade_x == 0.0:
-					self.velocidade_x += -self.tamanho_x
-					self.velocidade_y = 0
-			elif event.key == pygame.K_RIGHT:
-				if self.velocidade_x == 0.0:
-					self.velocidade_x += +self.tamanho_x
-					self.velocidade_y = 0
-			elif event.key == pygame.K_UP:
-				if self.velocidade_y == 0.0:
-					self.velocidade_y += -self.tamanho_y
-					self.velocidade_x = 0
-			elif event.key == pygame.K_DOWN:
-				if self.velocidade_y == 0.0:
-					self.velocidade_y += +self.tamanho_y
-					self.velocidade_x = 0
-			time.sleep(0.04)
-	#calcula a posicao da cobra
-	def posicao_cobra(self, frutas, largura, altura):
-		game_over = True
-		#calcula a posicao nova
-		self.pos_x += self.velocidade_x
-		self.pos_y += self.velocidade_y
-		#confere senao saiu da tela
-		game_over = self.cobra_parede(largura, altura)
-		print(game_over)
-		if game_over:
-			return game_over
-		#calcula caso ele va bater nas frutas
-		for fruta in frutas:
-			fruta.colisao_fruta(self, frutas)
-		return game_over
-
-	#checa se a cobra bateu na parede
-	def cobra_parede(self, largura, altura):
-		if self.pos_x < 0:
-			#self.pos_x = largura
-			self.pos_x = 0
-			return True
-			#sair = False
-		elif self.pos_x > largura:
-			self.pos_x = largura
-			return True
-			#self.pos_x = self.tamanho_x
-			#sair = False
-		elif self.pos_y < 0:
-			self.pos_y = 0
-			return True
-			#self.pos_y = altura
-			#sair = False
-		elif self.pos_y > altura:
-			self.pos_y = largura
-			return True
-			#self.pos_y = self.tamanho_y
-			#sair = False
-		return False
-	#aumenta o tamanho da cobra
-	def aumentar_cobra(self, game_over):
-		parte = []
-		if not game_over:
-			parte.append(self.pos_x)
-			parte.append(self.pos_y)
-			self.cobra.append(parte)
-		if len(self.cobra) > self.tamanho:
-			del self.cobra[0]
-	#desenha a cobra na tela
-	def desenhar_cobra(self, tela, cor = None):
-			if self.cor == "coral":
-				coral = [(255, 153, 00),(255, 255, 255),(0,0,0)]
-				# 0 1 2 3 4 5
-				#laranja laranja branco preto preto branco
-				for k, parte in reversed(list(enumerate(self.cobra))):
-					cobra_tamanho = len(self.cobra) - 1
-					cobra_parte = abs(cobra_tamanho - k)
-					if cobra_parte % 6 == 0 or cobra_parte % 6 == 1:
-						pygame.draw.rect(tela, coral[0], [parte[0], parte[1], self.tamanho_x, self.tamanho_y])
-					elif cobra_parte % 6 == 2 or cobra_parte % 6 == 5:
-						pygame.draw.rect(tela, coral[1], [parte[0], parte[1], self.tamanho_x, self.tamanho_y])
-					else:
-						pygame.draw.rect(tela, coral[2], [parte[0], parte[1], self.tamanho_x, self.tamanho_y])
-			else:
-				for parte in self.cobra:
-					pygame.draw.rect(tela, self.cor, [parte[0], parte[1], self.tamanho_x, self.tamanho_y])
+#definindo o audio
+pygame.mixer.pre_init(44100, 16, 2 , 4096) 
 
 
 class Menu():
@@ -169,9 +18,10 @@ class Menu():
 		self.tela = pygame.display.set_mode((400, 600))
 		self.tela.fill((255,255,255)) 
 		self.cores = Cor()
-		self.botao1 = Button((170, 200, 100, 50), 'Jogar')
-		self.botao2 = pygbutton.PygButton((170, 270, 100, 50), 'Instrucoes')
-		self.botao3 = pygbutton.PygButton((170, 330, 100, 50), 'Sair')
+		#botao de iniciar o jogo
+		self.botao2 = Button2((170, 270, 100, 50), 'Jogar')
+		#botao de sair do jogo
+		self.botao3 = Button3((170, 330, 100, 50), 'Sair')
 		pygame.init()
 	def escreve_texto(self, msg, cor, tamanho = 25, posicao = [50,0]):
 		#criando o texto
@@ -183,35 +33,117 @@ class Menu():
 		while sair:
 			self.tela.fill(self.cores.white)
 			self.escreve_texto("Snake", self.cores.rosina, 70, [150, 120])
-			self.botao1.draw(self.tela)
 			self.botao2.draw(self.tela)
 			self.botao3.draw(self.tela)
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
 					sair = False
-				self.botao1.handleEvent(event)
 				self.botao2.handleEvent(event)
 				self.botao3.handleEvent(event)
 			pygame.display.flip()
 		pygame.quit()
 
 #classe de botoes para o pygame
-class Button(pygbutton.PygButton):
+
+class Button2(pygbutton.PygButton):
 	def mouseClick(self, event):
-		jogo = Jogo()
-		jogo.iniciar_jogo()
-		print("oi")
-		return True
-	
-class Jogo():
+		mudar_cor = Mudar_cor()
+		mudar_cor.desenhar_tela()
+
+class Button3(pygbutton.PygButton):
+	def mouseClick(self, event):
+		quit()
+
+class Mudar_cor():
 	def __init__(self, largura = 400, altura = 600):
+		self.largura = largura
+		self.altura = altura
+		self.tela = pygame.display.set_mode((largura, altura))
+		self.cores = Cor()
+		self.cobra = Cobra(self.altura, self.largura, cor = self.cores.green)
+		self.lista_botao =[]
+		self.botao_jogar = Botao_jogar(150, 550, largura = 50, altura = 100, cor = self.cores.white)
+		#criando um botao para cada cor
+		posx = 75
+		posy = 225
+		for pos, cor in enumerate(self.cores.lista_cores):
+			botao = Botao_cor(posx = posx, posy = posy, cor = cor)
+			self.lista_botao.append(botao)
+			posx += 75
+			if posx > 300:
+				posx = 75
+				posy += 75
+
+	def escreve_texto(self, msg, cor, tamanho = 25, posicao = [50,0]):
+		#criando o texto
+		font = pygame.font.SysFont(None, tamanho)
+		text = font.render(msg, True, cor)
+		self.tela.blit(text, posicao)
+		
+	def desenhar_tela(self):
+		self.cobra.cobra = [[150,100],[160,100],[170,100],[180,100],[180,110],[180,120],[190,120],[200,120]]
+		self.cobra.pos_x = 150
+		self.cobra.pos_y = 100
+		sair = True
+		while sair:
+			for event in pygame.event.get():
+				for botao in self.lista_botao:
+					botao.tratar_evento(self.cobra)
+				sair = self.botao_jogar.tratar_evento(self.cobra)
+				if event.type == pygame.QUIT:
+					sair = False
+			self.tela.fill(self.cores.rosina)
+			self.escreve_texto("Escolha a cor da sua cobra", self.cores.white, 35, [50,50])
+			self.cobra.desenhar_cobra(self.tela)
+			pygame.draw.rect(self.tela, self.cores.rosina, [50, 200, 300, 350])
+			for botao in self.lista_botao:
+				botao.desenhar_botao(self.tela)
+
+			self.botao_jogar.desenhar_botao(self.tela)
+			pygame.display.flip()
+
+class Botao_cor():
+	def __init__(self, posx, posy, msg = "oi", cor = (255, 0, 0), largura= 50, altura= 50):
+		self.msg = msg
+		self.cor = cor
+		self.largura = largura
+		self.altura = altura
+		self.posx = posx
+		self.posy = posy
+	def desenhar_botao(self, tela):
+		mouse = pygame.mouse.get_pos()
+		#muda a cor do botao caso passe o mouse por cima
+		if self.posx + self.altura > mouse[0] > self.posx and self.posy + self.largura > mouse[1] > self.posy:
+			pygame.draw.rect(tela, (0,0,0), [self.posx, self.posy, self.altura, self.largura])
+		else:
+			if self.cor == "coral":
+				pygame.draw.rect(tela, (0,0,0), [self.posx, self.posy, self.altura, self.largura])
+				return
+			pygame.draw.rect(tela, self.cor, [self.posx, self.posy, self.altura, self.largura])
+	def tratar_evento(self, cobra):
+		mouse = pygame.mouse.get_pos()
+		click = pygame.mouse.get_pressed()
+		if self.posx + self.altura > mouse[0] > self.posx and self.posy + self.largura > mouse[1] > self.posy and click[0] == 1:
+			self.acao(cobra)
+			return False
+		return True
+	def acao(self,cobra):
+		cobra.cor = self.cor
+
+class Botao_jogar(Botao_cor):
+	def acao(self, cobra):
+		jogo = Jogo(cobra.cor)
+		jogo.iniciar_jogo()
+
+class Jogo():
+	def __init__(self, cor = (0, 255, 0), largura = 400, altura = 600):
 		#tamanho da tela
 		self.largura = largura
 		self.altura = altura
 		self.tela = pygame.display.set_mode((largura, altura))
 		#elementos do jogo
 		self.cores = Cor()
-		self.cobra = Cobra(self.altura, self.largura, cor = self.cores.green)
+		self.cobra = Cobra(self.altura, self.largura, cor = cor)
 		self.frutas = []
 		maca = Fruta(self.altura, self.largura, points_per_fruit = 100, aumenta_cobra = True)
 		laranja = Fruta(self.altura, self.largura, points_per_fruit = 500, cor =  self.cores.laranja)
@@ -222,6 +154,9 @@ class Jogo():
 		pygame.init()
 		#controlando o fps do jogo
 		self.relogio = pygame.time.Clock()
+		#controlando a musica 
+		pygame.mixer.music.load("snake_song.mp3")
+		pygame.mixer.music.set_volume(0.4)
 		#coloca o tamanho da tela do jogo
 		#coloca o titulo do jogo
 		pygame.display.set_caption("Snake")
@@ -235,6 +170,7 @@ class Jogo():
 	def iniciar_jogo(self):
 		parte = [1000, 1000]
 		game_over = False
+		pygame.mixer.music.play(-1)
 		while self.sair and not game_over:
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
@@ -263,6 +199,7 @@ class Jogo():
 			#limitando o jogo para 15 frames por segundo
 			self.relogio.tick(15)
 		#para acabar com a tela :)
+		pygame.mixer.music.stop()
 		if game_over:
 			self.escreve_texto("Game Over", self.cores.white, self.tela, tamanho = 50, posicao = [self.altura/5, self.largura/2])
 			pygame.display.update()
@@ -272,10 +209,3 @@ class Jogo():
 
 menu = Menu()
 menu.iniciar_menu()
-
-
-'''
-#jogo principal
-jogo = Jogo()
-jogo.iniciar_jogo()
-'''
